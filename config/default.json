@@ -1,0 +1,4 @@
+{
+    "mongoURI": "mongodb+srv://kulaska:18521853k@cluster0-3gpgm.mongodb.net/test?retryWrites=true&w=majority",
+    "jwtSecret": "PapaCarlo"
+}
