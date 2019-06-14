@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../../middleware/auth");
+const request = require("request");
 const {
     check,
     validationResult
@@ -162,6 +163,176 @@ router.delete('/', auth, async (req, res) => {
             _id: req.user.id
         })
         res.json('User deleted')
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error')
+    }
+})
+
+// @route PUT api/profile/experience
+// @desc Add profile exp by user id
+// @access Private
+
+router.put('/experience', [auth, [
+        check('title', 'Title is required').not().isEmpty(),
+        check('company', 'Company is required').not().isEmpty(),
+        check('from', 'From date is required').not().isEmpty()
+    ]],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array()
+            });
+        }
+
+        const {
+            title,
+            company,
+            from,
+            to,
+            description,
+            location,
+            current
+        } = req.body;
+
+        const newExp = {
+            title,
+            company,
+            from,
+            to,
+            description,
+            location,
+            current
+        }
+
+        try {
+            const profile = await Profile.findOne({
+                user: req.user.id
+            });
+
+            profile.experience.unshift(newExp);
+
+            await profile.save();
+
+            res.json(profile);
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send('Server Error')
+        }
+    })
+
+// @route Delete api/profile/experience/:exp_id
+// @desc Delete profile exp by its id
+// @access Private
+
+router.delete('/experience/:exp_id', auth, async (req, res) => {
+    try {
+        const exp_id = req.params.exp_id;
+        const profile = await Profile.findOne({
+            user: req.user.id
+        });
+        const removeIndex = profile.experience.findIndex(item => item.id == exp_id);
+        if (removeIndex == -1) throw new Error("There is no such experience")
+        profile.experience.splice(removeIndex, 1);
+        await profile.save();
+
+        res.json(profile);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Deletion hasn't been completed");
+    }
+
+});
+
+// @route PUT api/profile/education
+// @desc Add profile education by user id
+// @access Private
+
+router.put('/education', [auth, [
+        check('school', 'School is required').not().isEmpty(),
+        check('degree', 'Degree is required').not().isEmpty(),
+        check('from', 'From date is required').not().isEmpty(),
+        check('fieldofstudy', 'Field of study is required').not().isEmpty()
+    ]],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array()
+            });
+        }
+
+        const {
+            school,
+            degree,
+            fieldofstudy,
+            from
+        } = req.body;
+
+        const newEdu = {
+            school,
+            degree,
+            fieldofstudy,
+            from
+        }
+
+        try {
+            const profile = await Profile.findOne({
+                user: req.user.id
+            });
+
+            profile.education.unshift(newEdu);
+
+            await profile.save();
+
+            res.json(profile);
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send('Server Error')
+        }
+    })
+
+// @route Delete api/profile/experience/:exp_id
+// @desc Delete profile exp by its id
+// @access Private
+
+router.delete('/education/:edu_id', auth, async (req, res) => {
+    try {
+        const edu_id = req.params.edu_id;
+        const profile = await Profile.findOne({
+            user: req.user.id
+        });
+        const removeIndex = profile.education.findIndex(item => item.id == edu_id);
+        if (removeIndex == -1) throw new Error("There is no such education")
+        profile.education.splice(removeIndex, 1);
+        await profile.save();
+
+        res.json(profile);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Deletion hasn't been completed");
+    }
+
+});
+
+router.get('/github/:username', (req, res) => {
+    try {
+        const url = `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc`;
+        const options = {
+            url,
+            method: "GET",
+            headers: {
+                "user-agent": "node.js"
+            }
+        };
+
+        request(options, (error, response, body) => {
+            if (error) throw error;
+            if (response.statusCode != 200) return res.status(404).send('Not found');
+
+            res.json(JSON.parse(body));
+        })
     } catch (error) {
         console.error(error);
         res.status(500).send('Server Error')
