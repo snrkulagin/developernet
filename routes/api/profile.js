@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../../middleware/auth");
 const request = require("request");
+const config = require("config");
 const { check, validationResult } = require("express-validator/check");
 
 const Profile = require("../../Models/Profile");
@@ -291,13 +292,15 @@ router.put(
       });
     }
 
-    const { school, degree, fieldofstudy, from } = req.body;
+    const { school, degree, fieldofstudy, to, from, description } = req.body;
 
     const newEdu = {
       school,
       degree,
       fieldofstudy,
-      from
+      from,
+      to,
+      description
     };
 
     try {
@@ -343,7 +346,9 @@ router.get("/github/:username", (req, res) => {
   try {
     const url = `https://api.github.com/users/${
       req.params.username
-    }/repos?per_page=5&sort=created:asc`;
+    }/repos?per_page=5&sort=created:asc&client_id=${config.get(
+      "githubClientId"
+    )}&client_secret=${config.get("githubClientSecret")}`;
     const options = {
       url,
       method: "GET",
