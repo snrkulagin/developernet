@@ -1,6 +1,0 @@
-{
-  "mongoURI": "mongodb+srv://kulaska:18521853k@cluster0-3gpgm.mongodb.net/test?retryWrites=true&w=majority",
-  "jwtSecret": "PapaCarlo",
-  "githubClientId": "edf410bde7efa6010d17",
-  "githubClientSecret": "f4682646880689a8528c7427bf509dc5388ef96a"
-}
